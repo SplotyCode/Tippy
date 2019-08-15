@@ -1,13 +1,11 @@
 package io.github.splotycode.tippy.parser;
 
 import io.github.splotycode.mosaik.util.StringUtil;
-import io.github.splotycode.tippy.term.Constant;
-import io.github.splotycode.tippy.term.Evaluation;
-import io.github.splotycode.tippy.term.SetVariable;
-import io.github.splotycode.tippy.term.Variable;
+import io.github.splotycode.tippy.term.*;
 import lombok.Getter;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Queue;
 
 @Getter
@@ -33,6 +31,7 @@ public class Parser {
         if (lastIdentifierStart != -1) {
             boolean number = StringUtil.isDouble(input.substring(lastIdentifierStart, tokenPosition));
             tokens.add(new Token(lastIdentifierStart, tokenPosition - 1, number ? TokenType.NUMBER : TokenType.IDENTIFIER));
+            lastIdentifierStart = -1;
         }
     }
 
@@ -48,6 +47,19 @@ public class Parser {
                 String name = currentText();
                 Token set = nextWhenType(TokenType.SET);
                 if (set == null) {
+                    if (skipNextType(TokenType.BRACKET_LEFT)) {
+                        CallFunction functionCall = new CallFunction(name, new ArrayList<>());
+                        boolean first = true;
+                        while (cToken.getType() != TokenType.BRACKET_RIGHT) {
+                            if (!first) {
+                                needSkip(TokenType.COMMA, true);
+                            }
+                            functionCall.getArguments().add(valueToken());
+                            needNext();
+                            first = false;
+                        }
+                        return functionCall;
+                    }
                     return new Variable(name);
                 }
                 needNext();
@@ -56,6 +68,27 @@ public class Parser {
                 unexpected();
                 return null;
         }
+    }
+
+    protected boolean skipNextType(TokenType type) {
+        if (nextWhenType(type) == null) {
+            return false;
+        }
+        next();
+        return true;
+    }
+
+    protected Token needSkip(TokenType type, boolean followup) {
+        needNext(type);
+        return followup ? needNext() : next();
+    }
+
+    protected Token needNext(TokenType type) {
+        Token token = needNext();
+        if (token.getType() == type) {
+            return token;
+        }
+        throw new RuntimeException("Needed " + type + " not " + token.getType());
     }
 
     protected Token nextWhenType(TokenType type) {
@@ -90,17 +123,25 @@ public class Parser {
             char ch = input.charAt(tokenPosition);
             if (Character.isWhitespace(ch)) {
                 checkIdentifier();
-                break;
+                continue;
             }
             switch (ch) {
                 case '(':
                     addToken(tokenPosition, TokenType.BRACKET_LEFT);
                     break;
+                case ')':
+                    addToken(tokenPosition, TokenType.BRACKET_RIGHT);
+                    break;
+                case ',':
+                    addToken(tokenPosition, TokenType.COMMA);
+                    break;
                 case '=':
                     addToken(tokenPosition, TokenType.SET);
                     break;
                 default:
-                    lastIdentifierStart = tokenPosition;
+                    if (lastIdentifierStart == -1) {
+                        lastIdentifierStart = tokenPosition;
+                    }
             }
         }
         checkIdentifier();

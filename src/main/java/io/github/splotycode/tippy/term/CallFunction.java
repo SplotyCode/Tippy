@@ -24,7 +24,7 @@ public class CallFunction implements Evaluation {
 
     @Override
     public void asString(StringBuilder builder) {
-        builder.append(name).append(')');
+        builder.append(name).append('(');
         StringUtil.join(builder, arguments, (sb, evaluation) -> evaluation.asString(sb), ", ", false);
         builder.append(')');
     }

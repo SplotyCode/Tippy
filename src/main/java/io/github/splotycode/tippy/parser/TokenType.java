@@ -5,6 +5,8 @@ public enum TokenType {
     IDENTIFIER,
     SET,
     BRACKET_LEFT,
+    BRACKET_RIGHT,
+    COMMA,
     NUMBER,
 
 }
