@@ -1,7 +1,11 @@
 package io.github.splotycode.tippy.term;
 
 import io.github.splotycode.tippy.project.MathContext;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@AllArgsConstructor
+@Getter
 public class SetVariable implements Evaluation {
 
     private String name;

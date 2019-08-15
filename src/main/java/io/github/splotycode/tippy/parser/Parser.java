@@ -3,6 +3,7 @@ package io.github.splotycode.tippy.parser;
 import io.github.splotycode.mosaik.util.StringUtil;
 import io.github.splotycode.tippy.term.Constant;
 import io.github.splotycode.tippy.term.Evaluation;
+import io.github.splotycode.tippy.term.SetVariable;
 import io.github.splotycode.tippy.term.Variable;
 import lombok.Getter;
 
@@ -39,19 +40,49 @@ public class Parser {
         return input.substring(cToken.getStart(), cToken.getEnd() + 1);
     }
 
-    public void computeTokens() {
-        while ((cToken = tokens.poll()) != null) {
-            switch (cToken.getType()) {
-                case NUMBER:
-                    base = new Constant(Double.valueOf(currentText()));
-                    break;
-                case IDENTIFIER:
-                    base = new Variable(currentText());
-                    break;
-                default:
-                    throw new RuntimeException("Didn't expected " + cToken.getType() + " at " + cToken.position());
-            }
+    private Evaluation valueToken() {
+        switch (cToken.getType()) {
+            case NUMBER:
+                return new Constant(Double.valueOf(currentText()));
+            case IDENTIFIER:
+                String name = currentText();
+                Token set = nextWhenType(TokenType.SET);
+                if (set == null) {
+                    return new Variable(name);
+                }
+                needNext();
+                return new SetVariable(name, valueToken());
+            default:
+                unexpected();
+                return null;
         }
+    }
+
+    protected Token nextWhenType(TokenType type) {
+        Token peek = tokens.peek();
+        if (peek == null) {
+            return null;
+        }
+        return peek.getType() == type ? next() : null;
+    }
+
+    protected void unexpected() {
+        throw new RuntimeException("Didn't expected " + cToken.getType() + " at " + cToken.position());
+    }
+
+    protected Token next() {
+        return (cToken = tokens.poll());
+    }
+
+    private Token needNext() {
+        next();
+        if (cToken == null) throw new RuntimeException("Unexpected end");
+        return cToken;
+    }
+
+    public void computeTokens() {
+        next();
+        base = valueToken();
     }
 
     public void parseTokens() {
