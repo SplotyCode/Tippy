@@ -37,6 +37,7 @@ public class MathContext {
         while ((variable = current.vairables.get(name)) == null && current.parent != null) {
             current = current.parent;
         }
+        if (variable == null) throw new RuntimeException("No variable named " + name + " found in the current context");
         return variable;
     }
 

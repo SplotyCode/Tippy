@@ -1,6 +1,8 @@
 package io.github.splotycode.tippy;
 
+import io.github.splotycode.tippy.parser.Parser;
 import io.github.splotycode.tippy.project.MathContext;
+import io.github.splotycode.tippy.term.Evaluation;
 import lombok.Getter;
 
 import java.util.Scanner;
@@ -23,7 +25,25 @@ public class Tippy {
                     System.exit(0);
                     break;
                 default:
-                    System.out.println(command);
+                    Parser parser = new Parser(command);
+                    Evaluation evaluation;
+                    String evaluationString;
+                    try {
+                        parser.parseTokens();
+                        parser.computeTokens();
+                        evaluation = parser.getBase();
+                        evaluationString = evaluation.asString();
+                    } catch (Throwable error) {
+                        System.out.println("Error: " + error.getMessage());
+                        break;
+                    }
+                    String result;
+                    try {
+                        result = String.valueOf(evaluation.calculate(base));
+                    } catch (Throwable error) {
+                        result = "Error: " + error.getMessage();
+                    }
+                    System.out.println(evaluationString + " -> " + result);
             }
         }
     }
