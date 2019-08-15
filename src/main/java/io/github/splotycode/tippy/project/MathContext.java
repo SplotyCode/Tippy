@@ -1,12 +1,14 @@
 package io.github.splotycode.tippy.project;
 
 import io.github.splotycode.tippy.function.Function;
+import lombok.Setter;
 
 import java.util.HashMap;
 
 public class MathContext {
 
     private MathContext parent;
+    @Setter private Settings settings;
 
     private HashMap<String, Double> vairables = new HashMap<>();
     private HashMap<String, HashMap<Integer, Function>> functions = new HashMap<>();
@@ -26,7 +28,11 @@ public class MathContext {
         putFunction(new Function("sin", "x") {
             @Override
             public double invoke(MathContext context, double[] arguments) {
-                return Math.sin(Math.toRadians(arguments[0]));
+                double value = arguments[0];
+                if (getSettings().getAngleType() == AngleType.DEGREES) {
+                    value = Math.toRadians(value);
+                }
+                return Math.sin(Math.toRadians(value));
             }
         });
     }
@@ -66,5 +72,24 @@ public class MathContext {
         Function function = data.get(arguments.length);
         if (function == null) throw new IllegalArgumentException("No function with that amount of parameters: " + arguments.length);
         return function.invoke(this, arguments);
+    }
+
+    public MathContext baseParent() {
+        MathContext current = this;
+        while (current.parent != null) {
+            current = current.parent;
+        }
+        return current;
+    }
+
+    public Settings getSettings() {
+        MathContext current = this;
+        while (current != null) {
+            if (current.settings != null) {
+                return current.settings;
+            }
+            current = current.parent;
+        }
+        return null;
     }
 }
