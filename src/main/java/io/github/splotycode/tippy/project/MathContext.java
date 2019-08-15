@@ -26,7 +26,7 @@ public class MathContext {
         putFunction(new Function("sin", "x") {
             @Override
             public double invoke(MathContext context, double[] arguments) {
-                return Math.sin(arguments[0]);
+                return Math.sin(Math.toRadians(arguments[0]));
             }
         });
     }
@@ -37,7 +37,7 @@ public class MathContext {
         while ((variable = current.vairables.get(name)) == null && current.parent != null) {
             current = current.parent;
         }
-        if (variable == null) throw new RuntimeException("No variable named " + name + " found in the current context");
+        if (variable == null) throw new RuntimeException("No variable named '" + name + "' found in the current context");
         return variable;
     }
 
@@ -64,7 +64,7 @@ public class MathContext {
         HashMap<Integer, Function> data = functions.get(name);
         if (data == null) throw new IllegalArgumentException("No function with name " + name);
         Function function = data.get(arguments.length);
-        if (function == null) throw new IllegalArgumentException("No function with that amount of parameters " + arguments.length);
+        if (function == null) throw new IllegalArgumentException("No function with that amount of parameters: " + arguments.length);
         return function.invoke(this, arguments);
     }
 }
