@@ -69,9 +69,23 @@ public class Parser {
     }
 
     private Evaluation valueToken() {
+        boolean negate = false;
+        if (cToken.getType() == TokenType.PLUS) {
+            needNext();
+        } else if (cToken.getType() == TokenType.MINUS) {
+            needNext();
+            negate = true;
+        }
+
+        System.out.println(negate);
+
         switch (cToken.getType()) {
             case NUMBER:
-                return new Constant(Double.valueOf(currentText()));
+                double constant = Double.valueOf(currentText());
+                if (negate) {
+                    constant = -constant;
+                }
+                return new Constant(constant);
             case IDENTIFIER:
                 String name = currentText();
                 Token set = nextWhenType(TokenType.SET);
@@ -87,16 +101,23 @@ public class Parser {
                             needNext();
                             first = false;
                         }
-                        return functionCall;
+                        return wrapNegate(negate, functionCall);
                     }
-                    return new Variable(name);
+                    return wrapNegate(negate, new Variable(name));
                 }
                 needNext();
-                return new SetVariable(name, valueOperatorToken());
+                return wrapNegate(negate, new SetVariable(name, valueOperatorToken()));
             default:
                 unexpected();
                 return null;
         }
+    }
+
+    protected Evaluation wrapNegate(boolean negate, Evaluation evaluation) {
+        if (negate) {
+            evaluation = new Negate(evaluation);
+        }
+        return evaluation;
     }
 
     protected boolean skipNextType(TokenType type) {
@@ -146,7 +167,7 @@ public class Parser {
         next();
         base = valueOperatorToken();
         if (!tokens.isEmpty()) {
-            throw new RuntimeException("thinks after " + cToken.getEnd() + "(" + currentText() + ") seems to be illegal");
+            throw new RuntimeException("thinks after " + cToken.getEnd() + "(" + currentText() + "|" + cToken.getType() + ") seems to be illegal");
         }
     }
 
@@ -174,6 +195,7 @@ public class Parser {
                     addToken(tokenPosition, TokenType.PLUS);
                     break;
                 case '-':
+                case '−':
                     addToken(tokenPosition, TokenType.MINUS);
                     break;
                 case '*':

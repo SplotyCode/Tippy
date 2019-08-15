@@ -32,7 +32,7 @@ public class MathContext {
                 if (getSettings().getAngleType() == AngleType.DEGREES) {
                     value = Math.toRadians(value);
                 }
-                return Math.sin(Math.toRadians(value));
+                return Math.sin(value);
             }
         });
     }
