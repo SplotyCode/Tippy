@@ -2,6 +2,10 @@ package io.github.splotycode.tippy.parser;
 
 import io.github.splotycode.mosaik.util.StringUtil;
 import io.github.splotycode.tippy.term.*;
+import io.github.splotycode.tippy.term.operator.DivideEvaluation;
+import io.github.splotycode.tippy.term.operator.MinusEvaluation;
+import io.github.splotycode.tippy.term.operator.MultiplEvaluation;
+import io.github.splotycode.tippy.term.operator.PlusEvaluation;
 import lombok.Getter;
 
 import java.util.ArrayDeque;
@@ -39,6 +43,31 @@ public class Parser {
         return input.substring(cToken.getStart(), cToken.getEnd() + 1);
     }
 
+    private Evaluation valueOperatorToken() {
+        Evaluation left = valueToken();
+        Token operator = tokens.peek();
+        if (operator == null) return left;
+        switch (operator.getType()) {
+            case PLUS:
+                needNext();
+                needNext();
+                return new PlusEvaluation(left, valueToken());
+            case MINUS:
+                needNext();
+                needNext();
+                return new MinusEvaluation(left, valueToken());
+            case STAR:
+                needNext();
+                needNext();
+                return new MultiplEvaluation(left, valueToken());
+            case SLASH:
+                needNext();
+                needNext();
+                return new DivideEvaluation(left, valueToken());
+        }
+        return left;
+    }
+
     private Evaluation valueToken() {
         switch (cToken.getType()) {
             case NUMBER:
@@ -54,7 +83,7 @@ public class Parser {
                             if (!first) {
                                 needSkip(TokenType.COMMA, true);
                             }
-                            functionCall.getArguments().add(valueToken());
+                            functionCall.getArguments().add(valueOperatorToken());
                             needNext();
                             first = false;
                         }
@@ -63,7 +92,7 @@ public class Parser {
                     return new Variable(name);
                 }
                 needNext();
-                return new SetVariable(name, valueToken());
+                return new SetVariable(name, valueOperatorToken());
             default:
                 unexpected();
                 return null;
@@ -115,7 +144,10 @@ public class Parser {
 
     public void computeTokens() {
         next();
-        base = valueToken();
+        base = valueOperatorToken();
+        if (!tokens.isEmpty()) {
+            throw new RuntimeException("thinks after " + cToken.getEnd() + "(" + currentText() + ") seems to be illegal");
+        }
     }
 
     public void parseTokens() {
@@ -137,6 +169,18 @@ public class Parser {
                     break;
                 case '=':
                     addToken(tokenPosition, TokenType.SET);
+                    break;
+                case '+':
+                    addToken(tokenPosition, TokenType.PLUS);
+                    break;
+                case '-':
+                    addToken(tokenPosition, TokenType.MINUS);
+                    break;
+                case '*':
+                    addToken(tokenPosition, TokenType.STAR);
+                    break;
+                case '/':
+                    addToken(tokenPosition, TokenType.SLASH);
                     break;
                 default:
                     if (lastIdentifierStart == -1) {

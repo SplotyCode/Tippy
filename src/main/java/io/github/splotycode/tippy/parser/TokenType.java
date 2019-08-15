@@ -8,5 +8,9 @@ public enum TokenType {
     BRACKET_RIGHT,
     COMMA,
     NUMBER,
+    PLUS,
+    MINUS,
+    STAR,
+    SLASH
 
 }
