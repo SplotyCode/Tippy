@@ -53,7 +53,7 @@ public class Tippy {
 
     private Tippy() {
         base.setSettings(new Settings());
-        if (true) {
+        if (false) {
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 System.out.print("->");

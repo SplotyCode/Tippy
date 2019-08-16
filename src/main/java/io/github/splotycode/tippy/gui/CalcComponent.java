@@ -30,7 +30,7 @@ public class CalcComponent extends JScrollBar implements ActionListener {
 
         String result = Tippy.getInstance().exec(command);
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
 
         JLabel commandLabel = new JLabel(command);
         JLabel resultLabel = new JLabel(result);
@@ -39,7 +39,9 @@ public class CalcComponent extends JScrollBar implements ActionListener {
 
 
         panel.add(commandLabel);
+        panel.add(Box.createHorizontalGlue());
         panel.add(resultLabel);
-        results.add(input);
+        results.add(panel);
+        results.updateUI();
     }
 }
