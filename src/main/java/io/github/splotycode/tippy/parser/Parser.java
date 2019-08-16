@@ -77,9 +77,14 @@ public class Parser {
                 needNext();
                 needNext();
                 return new MinusEvaluation(left, valueToken());
+            case NUMBER:
             case IDENTIFIER:
-                needNext();
-                return new MultiplEvaluation(left, valueToken());
+                if (left instanceof CallFunction ||
+                        (left instanceof Constant && operator.getType() == TokenType.IDENTIFIER)) {
+                    needNext();
+                    return new MultiplEvaluation(left, valueToken());
+                }
+                return left;
             case STAR:
                 needNext();
                 needNext();
@@ -189,7 +194,7 @@ public class Parser {
         next();
         base = valueOperatorToken();
         if (!tokens.isEmpty()) {
-            throw new RuntimeException("thinks after " + cToken.getEnd() + "(" + currentText() + "|" + cToken.getType() + ") seems to be illegal");
+            throw new RuntimeException("thinks after " + cToken.getEnd() + "('" + currentText() + "'|" + cToken.getType() + ") seems to be illegal");
         }
     }
 
