@@ -31,16 +31,37 @@ public class Parser {
         tokens.add(new Token(position, type));
     }
 
+    private int checkNumer(String number) {
+        for (int i = 0; i < number.length(); i++) {
+            char ch = number.charAt(i);
+            if (!Character.isDigit(ch) && ch != '.') {
+                return i;
+            }
+        }
+        return number.length();
+    }
+
     private void checkIdentifier() {
         if (lastIdentifierStart != -1) {
-            boolean number = StringUtil.isDouble(input.substring(lastIdentifierStart, tokenPosition));
-            tokens.add(new Token(lastIdentifierStart, tokenPosition - 1, number ? TokenType.NUMBER : TokenType.IDENTIFIER));
+            String str = input.substring(lastIdentifierStart, tokenPosition);
+            int number = checkNumer(str);
+            int midPart = lastIdentifierStart + number;
+            if (number > 0) {
+                tokens.add(new Token(lastIdentifierStart, midPart - 1, TokenType.NUMBER));
+            }
+            if (str.length() > number) {
+                tokens.add(new Token(midPart, tokenPosition - 1, TokenType.IDENTIFIER));
+            }
             lastIdentifierStart = -1;
         }
     }
 
     private String currentText() {
-        return input.substring(cToken.getStart(), cToken.getEnd() + 1);
+        try {
+            return input.substring(cToken.getStart(), cToken.getEnd() + 1);
+        } catch (StringIndexOutOfBoundsException ex) {
+            throw new RuntimeException("Invalid token bounds from " + cToken.getType(), ex);
+        }
     }
 
     private Evaluation valueOperatorToken() {
@@ -56,6 +77,9 @@ public class Parser {
                 needNext();
                 needNext();
                 return new MinusEvaluation(left, valueToken());
+            case IDENTIFIER:
+                needNext();
+                return new MultiplEvaluation(left, valueToken());
             case STAR:
                 needNext();
                 needNext();
@@ -76,8 +100,6 @@ public class Parser {
             needNext();
             negate = true;
         }
-
-        System.out.println(negate);
 
         switch (cToken.getType()) {
             case NUMBER:
