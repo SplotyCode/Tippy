@@ -16,7 +16,7 @@ public class Tippy {
     @Getter private static Tippy instance = new Tippy();
 
     private MathContext base = new MathContext();
-    private TippyWindow window = new TippyWindow();
+    //private TippyWindow window = new TippyWindow();
 
     public static void main(String[] args) {}
 
@@ -53,7 +53,7 @@ public class Tippy {
 
     private Tippy() {
         base.setSettings(new Settings());
-        if (false) {
+        if (true) {
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 System.out.print("->");
